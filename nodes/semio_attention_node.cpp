@@ -49,7 +49,7 @@ public:
 
             for( auto humanoids_it = result.cbegin(); humanoids_it != result.cend(); ++humanoids_it )
             {
-                std::map<semio::HumanoidJoint::JointType, semio::TopNList<semio::AttentionTarget> > const & joints = humanoids_it->second;
+                std::map<semio::HumanoidJoint::JointType, semio::TopNList<std::string> > const & joints = humanoids_it->second;
 
                 _AttentionRecognitionHumanoidItemMsg humanoid_msg;
                 humanoid_msg.id = static_cast<uint32_t>( humanoids_it->first );
@@ -57,7 +57,7 @@ public:
 
                 for( auto joints_it = joints.cbegin(); joints_it != joints.cend(); ++joints_it )
                 {
-                    semio::TopNList<semio::AttentionTarget> const & top_n_list = joints_it->second;
+                    semio::TopNList<std::string> const & top_n_list = joints_it->second;
 
                     _AttentionRecognitionJointItemMsg joint_msg;
                     joint_msg.id = static_cast<uint32_t>( joints_it->first );
@@ -65,18 +65,9 @@ public:
 
                     for( auto list_it = top_n_list.cbegin(); list_it != top_n_list.cend(); ++list_it )
                     {
-                        double const & value = list_it->value_;
-                        semio::AttentionTarget const & target = list_it->data_;
-
-                        _AttentionTargetMsg target_msg;
-                        target_msg.name = target.name_;
-                        target_msg.position.x = target.position_.x();
-                        target_msg.position.y = target.position_.y();
-                        target_msg.position.z = target.position_.z();
-
                         _AttentionRecognitionTopNItemMsg top_n_item_msg;
-                        top_n_item_msg.value = value;
-                        top_n_item_msg.target = target_msg;
+                        top_n_item_msg.likelihood = list_it->value_;
+                        top_n_item_msg.target_name = list_it->data_;
 
                         joint_msg.top_n_list.emplace_back( std::move( top_n_item_msg ) );
                     }
