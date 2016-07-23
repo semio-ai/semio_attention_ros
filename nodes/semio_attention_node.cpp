@@ -47,35 +47,35 @@ public:
 
             result_msg.humanoids.reserve( result.size() );
 
-            for( auto humanoids_it = result.cbegin(); humanoids_it != result.cend(); ++humanoids_it )
+            for( auto const & humanoid_item : result )
             {
-                std::map<semio::HumanoidJoint::JointType, semio::TopNList<std::string> > const & joints = humanoids_it->second;
+                std::map<semio::HumanoidJoint::JointType, semio::TopNList<std::string> > const & joints = humanoid_item.second;
 
                 _AttentionRecognitionHumanoidItemMsg humanoid_msg;
-                humanoid_msg.id = static_cast<uint32_t>( humanoids_it->first );
+                humanoid_msg.id = static_cast<uint32_t>( humanoid_item.first );
                 humanoid_msg.joints.reserve( joints.size() );
 
-                for( auto joints_it = joints.cbegin(); joints_it != joints.cend(); ++joints_it )
+                for( auto const & joint_item : joints )
                 {
-                    semio::TopNList<std::string> const & top_n_list = joints_it->second;
+                    semio::TopNList<std::string> const & top_n_list = joint_item.second;
 
                     _AttentionRecognitionJointItemMsg joint_msg;
-                    joint_msg.id = static_cast<uint32_t>( joints_it->first );
+                    joint_msg.id = static_cast<uint32_t>( joint_item.first );
                     joint_msg.top_n_list.reserve( top_n_list.size() );
 
-                    for( auto list_it = top_n_list.cbegin(); list_it != top_n_list.cend(); ++list_it )
+                    for( auto const & list_item : top_n_list )
                     {
                         _AttentionRecognitionTopNItemMsg top_n_item_msg;
-                        top_n_item_msg.likelihood = list_it->value_;
-                        top_n_item_msg.target_name = list_it->data_;
+                        top_n_item_msg.likelihood = list_item.value_;
+                        top_n_item_msg.target_name = list_item.data_;
 
-                        joint_msg.top_n_list.emplace_back( std::move( top_n_item_msg ) );
+                        joint_msg.top_n_list.push_back( std::move( top_n_item_msg ) );
                     }
 
-                    humanoid_msg.joints.emplace_back( std::move( joint_msg ) );
+                    humanoid_msg.joints.push_back( std::move( joint_msg ) );
                 }
 
-                result_msg.humanoids.emplace_back( std::move( humanoid_msg ) );
+                result_msg.humanoids.push_back( std::move( humanoid_msg ) );
             }
 
             result_pub_.publish( result_msg );
@@ -90,12 +90,12 @@ public:
 
         semio::AttentionTargetArray attention_targets;
 
-        for( auto msg_it = targets_msg.targets.cbegin(); msg_it != targets_msg.targets.cend(); ++msg_it )
+        for( auto const & target_msg : targets_msg.targets )
         {
-            auto const & position = msg_it->position;
-            auto const & name = msg_it->name;
+            auto const & name = target_msg.name;
+            auto const & position = target_msg.position;
 
-            attention_targets.emplace( semio::AttentionTarget( name, Eigen::Translation3d( position.x, position.y, position.z ) ) );
+            attention_targets.emplace( name, Eigen::Translation3d( position.x, position.y, position.z ) );
         }
 
         attention_recognizer_.getTargets() = attention_targets;
