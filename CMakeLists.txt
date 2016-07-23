@@ -6,6 +6,7 @@ project(semio_attention_ros)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  tf2_ros
   semio_msgs_ros
 )
 
