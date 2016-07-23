@@ -1,6 +1,9 @@
 #include <iostream>
+#include <sstream>
 
 #include <ros/ros.h>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <semio_msgs_ros/AttentionRecognitionResult.h>
 #include <semio_msgs_ros/AttentionTargets.h>
@@ -24,6 +27,7 @@ public:
 
     semio::AttentionRecognizer attention_recognizer_;
     semio::HumanoidSourceNiTE humanoid_source_;
+    tf2_ros::TransformBroadcaster transform_broadcaster_;
 
     SemioAttentionNode( ros::NodeHandle & nh_rel )
     :
@@ -37,11 +41,42 @@ public:
     void spin()
     {
         ros::Rate loop_rate( 30 );
+        semio::HumanoidJoint::_JointNamesMap const & joint_names_map( semio::HumanoidJoint::getJointNamesMap() );
 
         while( ros::ok() )
         {
-            attention_recognizer_.getHumanoids() = humanoid_source_.update();
-            semio::AttentionRecognitionResult const & result = attention_recognizer_.calculateResult();
+            semio::HumanoidArray const & humanoids( humanoid_source_.update() );
+
+            for( auto const & humanoid : humanoids )
+            {
+                semio::Humanoid::_JointArray const & joints = humanoid.joints_;
+
+                for( auto const & joint_item : joints )
+                {
+                    semio::HumanoidJoint const & joint( joint_item.second );
+
+                    geometry_msgs::TransformStamped transform;
+                    transform.transform.translation.x = joint.position_.x();
+                    transform.transform.translation.y = joint.position_.y();
+                    transform.transform.translation.z = joint.position_.z();
+
+                    transform.transform.rotation.x = joint.orientation_.x();
+                    transform.transform.rotation.y = joint.orientation_.y();
+                    transform.transform.rotation.z = joint.orientation_.z();
+                    transform.transform.rotation.w = joint.orientation_.w();
+
+                    transform.header.stamp = ros::Time::now();
+                    transform.header.frame_id = "/sensor";
+                    std::stringstream name_ss;
+                    name_ss << "/user" << humanoid.id_ << "/" << joint_names_map.find( joint_item.first )->second;
+                    transform.child_frame_id = name_ss.str();
+
+                    transform_broadcaster_.sendTransform( transform );
+                }
+            }
+
+            attention_recognizer_.getHumanoids() = humanoids;
+            semio::AttentionRecognitionResult const & result( attention_recognizer_.calculateResult() );
 
             _AttentionRecognitionResultMsg result_msg;
 
