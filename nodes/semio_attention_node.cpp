@@ -1,12 +1,10 @@
-#include <iostream>
-
 #include <ros/ros.h>
 
 #include <semio_msgs_ros/AttentionRecognitionResult.h>
 #include <semio_msgs_ros/AttentionTargets.h>
 
 #include <semio/recognition/attention_recognizer.h>
-#include <semio/recognition/humanoid_source_NiTE.h>
+#include <semio/ros/humanoid_source_adapter.h>
 
 class SemioAttentionNode
 {
@@ -22,14 +20,15 @@ public:
     ros::Publisher result_pub_;
     ros::Subscriber targets_sub_;
 
+    semio::HumanoidSource::Ptr humanoid_source_ptr_;
     semio::AttentionRecognizer attention_recognizer_;
-    semio::HumanoidSourceNiTE humanoid_source_;
 
-    SemioAttentionNode( ros::NodeHandle & nh_rel )
+    SemioAttentionNode( ros::NodeHandle & nh_rel, semio::HumanoidSource::Ptr humanoid_source_ptr )
     :
         nh_rel_( nh_rel ),
         result_pub_( nh_rel_.advertise<_AttentionRecognitionResultMsg>( "result", 10 ) ),
-        targets_sub_( nh_rel_.subscribe( "targets", 10, &SemioAttentionNode::targetsCB, this ) )
+        targets_sub_( nh_rel_.subscribe( "targets", 10, &SemioAttentionNode::targetsCB, this ) ),
+        humanoid_source_ptr_( humanoid_source_ptr )
     {
         //
     }
@@ -40,7 +39,7 @@ public:
 
         while( ros::ok() )
         {
-            attention_recognizer_.getHumanoids() = humanoid_source_.update();
+            attention_recognizer_.getHumanoids() = humanoid_source_ptr_->update();
             semio::AttentionRecognitionResult const & result = attention_recognizer_.calculateResult();
 
             _AttentionRecognitionResultMsg result_msg;
@@ -49,7 +48,7 @@ public:
 
             for( auto const & humanoid_item : result )
             {
-                std::map<semio::HumanoidJoint::JointType, semio::TopNList<std::string> > const & joints = humanoid_item.second;
+                semio::AttentionSourceMap const & joints( humanoid_item.second );
 
                 _AttentionRecognitionHumanoidItemMsg humanoid_msg;
                 humanoid_msg.id = static_cast<uint32_t>( humanoid_item.first );
@@ -57,7 +56,7 @@ public:
 
                 for( auto const & joint_item : joints )
                 {
-                    semio::TopNList<std::string> const & top_n_list = joint_item.second;
+                    semio::AttentionTopNList const & top_n_list( joint_item.second );
 
                     _AttentionRecognitionJointItemMsg joint_msg;
                     joint_msg.id = static_cast<uint32_t>( joint_item.first );
@@ -78,7 +77,7 @@ public:
                 result_msg.humanoids.push_back( std::move( humanoid_msg ) );
             }
 
-            result_pub_.publish( result_msg );
+            result_pub_.publish( std::move( result_msg ) );
 
             loop_rate.sleep();
         }
@@ -107,7 +106,9 @@ int main( int argc, char ** argv )
     ros::init( argc, argv, "semio_attention_node" );
     ros::NodeHandle nh_rel( "~" );
 
-    SemioAttentionNode semio_attention_node( nh_rel );
+    semio::ros::HumanoidSourceAdapter humanoid_source_adapter( nh_rel );
+
+    SemioAttentionNode semio_attention_node( nh_rel, humanoid_source_adapter.getHumanoidSource() );
     semio_attention_node.spin();
 
     return 0;
