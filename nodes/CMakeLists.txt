@@ -1,4 +1,6 @@
-set(nodes semio_attention_node)
+set(nodes
+  semio_attention_node
+  example_attention_targets_node)
 
 add_definitions( -std=c++11 )
 foreach(node ${nodes})
