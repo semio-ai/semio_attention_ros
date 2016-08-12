@@ -26,7 +26,7 @@ public:
     SemioAttentionNode( ros::NodeHandle & nh_rel, semio::HumanoidSource::Ptr humanoid_source_ptr )
     :
         nh_rel_( nh_rel ),
-        result_pub_( nh_rel_.advertise<_AttentionRecognitionResultMsg>( "result", 10 ) ),
+        result_pub_( nh_rel_.advertise<_AttentionRecognitionResultMsg>( "result", 1000 ) ),
         targets_sub_( nh_rel_.subscribe( "targets", 10, &SemioAttentionNode::targetsCB, this ) ),
         humanoid_source_ptr_( humanoid_source_ptr )
     {
@@ -39,6 +39,8 @@ public:
 
         while( ros::ok() )
         {
+            ros::spinOnce();
+
             attention_recognizer_.getHumanoids() = humanoid_source_ptr_->update();
             semio::AttentionRecognitionResult const & result = attention_recognizer_.calculateResult();
 
