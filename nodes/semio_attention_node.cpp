@@ -96,7 +96,7 @@ public:
             auto const & name = target_msg.name;
             auto const & position = target_msg.position;
 
-            attention_targets.emplace( name, Eigen::Translation3d( position.x, position.y, position.z ) );
+            attention_targets.emplace( name, Eigen::Vector3d( position.x, position.y, position.z ) );
         }
 
         attention_recognizer_.getTargets() = attention_targets;

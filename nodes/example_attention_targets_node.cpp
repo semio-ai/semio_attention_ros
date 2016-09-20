@@ -3,13 +3,14 @@
 #include <semio_msgs_ros/Humanoids.h>
 #include <semio/recognition/attention_recognizer.h>
 #include <semio/ros/humanoid_source_adapter.h>
+#include <semio/recognition/humanoid_source_virtual.h>
 
 struct TestPose
 {
     Eigen::Vector3d head_rotation;
     Eigen::Vector3d neck_rotation;
     Eigen::Vector3d torso_rotation;
-    Eigen::Translation3d position;
+    Eigen::Vector3d position;
 };
 
 class ExampleAttentionTargetsNode
@@ -40,21 +41,21 @@ public:
         _humanoid_source_ptr( humanoid_source_ptr ),
         _is_virtual_source( std::dynamic_pointer_cast<semio::HumanoidSourceVirtual>( _humanoid_source_ptr ) )
     {
-        _attention_targets.emplace( "center-low", Eigen::Translation3d( -1, 0, 0 ) );
-        _attention_targets.emplace( "left", Eigen::Translation3d( 1, -3, 0 ) );
-        _attention_targets.emplace( "right", Eigen::Translation3d( 1, 3, 0 ) );
-        _attention_targets.emplace( "center", Eigen::Translation3d( -1, 0, 0.6858 ) );
-        _attention_targets.emplace( "center-high", Eigen::Translation3d( -1, 0, 1 ) );
+        _attention_targets.emplace( "center-low", Eigen::Vector3d( -1, 0, 0 ) );
+        _attention_targets.emplace( "left", Eigen::Vector3d( 1, -3, 0 ) );
+        _attention_targets.emplace( "right", Eigen::Vector3d( 1, 3, 0 ) );
+        _attention_targets.emplace( "center", Eigen::Vector3d( -1, 0, 0.6858 ) );
+        _attention_targets.emplace( "center-high", Eigen::Vector3d( -1, 0, 1 ) );
 
         if( _is_virtual_source )
         {
-            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 ), Eigen::Translation3d( 2, 0, 0 ) } ) );
-            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 + 45 ), Eigen::Translation3d( 2, 0, 0 ) } ) );
-            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 - 45 ), Eigen::Translation3d( 2, 0, 0 ) } ) );
-            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 + 90 ), Eigen::Translation3d( 2, 0, 0 ) } ) );
-            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 - 90 ), Eigen::Translation3d( 2, 0, 0 ) } ) );
-            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 ), Eigen::Translation3d( 2, -2, 0 ) } ) );
-            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 ), Eigen::Translation3d( 2, 2, 0 ) } ) );
+            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 ), Eigen::Vector3d( 2, 0, 0 ) } ) );
+            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 + 45 ), Eigen::Vector3d( 2, 0, 0 ) } ) );
+            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 - 45 ), Eigen::Vector3d( 2, 0, 0 ) } ) );
+            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 + 90 ), Eigen::Vector3d( 2, 0, 0 ) } ) );
+            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 - 90 ), Eigen::Vector3d( 2, 0, 0 ) } ) );
+            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 ), Eigen::Vector3d( 2, -2, 0 ) } ) );
+            _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 0 ), Eigen::Vector3d( 0, 0, 180 ), Eigen::Vector3d( 2, 2, 0 ) } ) );
 
             for( double const & torso_yaw : { 90, 45, 0, -45, -90 } )
             {
@@ -62,7 +63,7 @@ public:
                 {
                     for( double const & head_yaw : { 45, 30, 15, 0, -15, -30, -45 } )
                     {
-                        _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, head_yaw ), Eigen::Vector3d( 0, 0, neck_yaw ), Eigen::Vector3d( 0, 0, 180 + torso_yaw ), Eigen::Translation3d( 1, 0, 0 ) } ) );
+                        _test_poses.push_back( std::move( TestPose{ Eigen::Vector3d( 0, 0, head_yaw ), Eigen::Vector3d( 0, 0, neck_yaw ), Eigen::Vector3d( 0, 0, 180 + torso_yaw ), Eigen::Vector3d( 1, 0, 0 ) } ) );
                     }
                 }
             }
