@@ -41,11 +41,43 @@ public:
         _humanoid_source_ptr( humanoid_source_ptr ),
         _is_virtual_source( std::dynamic_pointer_cast<semio::HumanoidSourceVirtual>( _humanoid_source_ptr ) )
     {
-        _attention_targets.emplace( "center-low", Eigen::Vector3d( -1, 0, 0 ) );
-        _attention_targets.emplace( "left", Eigen::Vector3d( 1, -3, 0 ) );
-        _attention_targets.emplace( "right", Eigen::Vector3d( 1, 3, 0 ) );
-        _attention_targets.emplace( "center", Eigen::Vector3d( -1, 0, 0.6858 ) );
-        _attention_targets.emplace( "center-high", Eigen::Vector3d( -1, 0, 1 ) );
+        size_t const cols( 13 );
+        size_t const rows( 7 );
+        double const horizontal_spacing( 5 );
+        double const vertical_spacing( 5 );
+        double const radius( 2 );
+        Eigen::Vector3d const center( radius, 0, 0 );
+
+        double const yaw_range( horizontal_spacing * static_cast<double>( cols - 1 ) / 2.0 );
+        double const pitch_range( vertical_spacing * static_cast<double>( rows - 1 ) / 2.0 );
+
+        for( size_t col = 0; col < cols; ++col )
+        {
+            for( size_t row = 0; row < rows; ++row )
+            {
+                double const yaw( yaw_range - static_cast<double>( col ) * horizontal_spacing );
+                double const pitch( -pitch_range + static_cast<double>( row ) * vertical_spacing );
+
+                std::stringstream name_stream;
+                name_stream << ( col * rows + row );
+                _attention_targets.emplace(
+                    name_stream.str(),
+                    (
+                        Eigen::Affine3d(
+                            Eigen::Translation3d( center ) *
+                            Eigen::Quaterniond( Eigen::AngleAxisd( M_PI, Eigen::Vector3d::UnitZ() ) )
+                        ) *
+                        Eigen::Affine3d(
+                            Eigen::Quaterniond(
+                                Eigen::AngleAxisd( yaw * M_PI/180, Eigen::Vector3d::UnitZ() ) *
+                                Eigen::AngleAxisd( pitch * M_PI/180, Eigen::Vector3d::UnitY() )
+                            ) *
+                            Eigen::Translation3d( radius, 0, 0 )
+                        )
+                    ).translation()
+                );
+            }
+        }
 
         if( _is_virtual_source )
         {
