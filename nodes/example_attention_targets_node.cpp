@@ -22,6 +22,7 @@ protected:
     typedef semio_msgs_ros::Humanoid _HumanoidMsg;
     typedef semio_msgs_ros::HumanoidJoint _HumanoidJointMsg;
 
+    ros::NodeHandle & _nh_rel;
     ros::Publisher _attention_targets_pub;
     ros::Publisher _humanoids_pub;
 
@@ -36,16 +37,19 @@ protected:
 public:
     ExampleAttentionTargetsNode( ros::NodeHandle & nh_rel, semio::HumanoidSource::Ptr humanoid_source_ptr )
     :
+        _nh_rel( nh_rel ),
         _attention_targets_pub( nh_rel.advertise<_AttentionTargetsMsg>( "attention_targets", 10 ) ),
         _humanoids_pub( nh_rel.advertise<_HumanoidsMsg>( "humanoids", 10 ) ),
         _humanoid_source_ptr( humanoid_source_ptr ),
         _is_virtual_source( std::dynamic_pointer_cast<semio::HumanoidSourceVirtual>( _humanoid_source_ptr ) )
     {
-        size_t const cols( 13 );
-        size_t const rows( 7 );
-        double const horizontal_spacing( 5 );
-        double const vertical_spacing( 5 );
-        double const radius( 2 );
+        size_t const cols( _nh_rel.param<int>( "cols", 13 ) );
+        size_t const rows( _nh_rel.param<int>( "rows", 7 ) );
+        double const horizontal_spacing( _nh_rel.param<double>( "h_spacing", 5 ) );
+        double const vertical_spacing( _nh_rel.param<double>( "v_spacing", 5 ) );
+        double const radius( _nh_rel.param<double>( "radius", 2 ) );
+
+        std::cout << "using " << cols << "x" << rows << " @ " << horizontal_spacing << "x" << vertical_spacing << std::endl;
         Eigen::Vector3d const center( radius, 0, 0 );
 
         double const yaw_range( horizontal_spacing * static_cast<double>( cols - 1 ) / 2.0 );
