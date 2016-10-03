@@ -26,11 +26,11 @@ public:
     SemioAttentionNode( ros::NodeHandle & nh_rel, semio::HumanoidSource::Ptr humanoid_source_ptr )
     :
         nh_rel_( nh_rel ),
-        result_pub_( nh_rel_.advertise<_AttentionRecognitionResultMsg>( "result", 1000 ) ),
+        result_pub_( nh_rel_.advertise<_AttentionRecognitionResultMsg>( "result", 100 ) ),
         targets_sub_( nh_rel_.subscribe( "targets", 10, &SemioAttentionNode::targetsCB, this ) ),
         humanoid_source_ptr_( humanoid_source_ptr )
     {
-        //
+        if( nh_rel.param<bool>( std::string( "filter_humanoids" ), true ) ) humanoid_source_ptr_->getFilter().addFilters( semio::HumanoidFilter::getStandardFilterHumanoid() );
     }
 
     void spin()
