@@ -30,7 +30,7 @@ public:
         targets_sub_( nh_rel_.subscribe( "targets", 10, &SemioAttentionNode::targetsCB, this ) ),
         humanoid_source_ptr_( humanoid_source_ptr )
     {
-        if( nh_rel.param<bool>( std::string( "filter_humanoids" ), true ) ) humanoid_source_ptr_->getFilter().addFilters( semio::HumanoidFilter::getStandardFilterHumanoid() );
+        //
     }
 
     void spin()
