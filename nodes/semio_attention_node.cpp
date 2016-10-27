@@ -64,7 +64,7 @@ public:
                     joint_msg.id = static_cast<uint32_t>( joint_item.first );
                     joint_msg.top_n_list.reserve( top_n_list.size() );
 
-                    for( auto const & list_item : top_n_list )
+                    for( auto const & list_item : top_n_list.values() )
                     {
                         _AttentionRecognitionTopNItemMsg top_n_item_msg;
                         top_n_item_msg.likelihood = list_item.getValue();
