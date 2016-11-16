@@ -1,0 +1,77 @@
+/**
+
+@if STANDALONE_DOC
+@mainpage semio_attention_ros
+@endif
+
+@if (!STANDALONE_DOC)
+@page semio_attention_ros semio_attention_ros
+@endif
+
+@section attention-overview Overview
+
+ROS interface for Semio attention software.
+
+---
+
+@section attention-nodes Nodes
+- @ref attention-semio_attention_node
+- @ref attention-example_attention_targets_node
+
+
+---
+@subsection attention-semio_attention_node semio_attention_node
+
+@subsubsection attention-semio_attention_node-source C++ API
+- @ref SemioAttentionNode
+
+@subsubsection attention-semio_attention_node-params Params
+- Any created by:
+  - semio::ros::HumanoidSourceAdapter
+  - semio::ros::HumanoidSinkAdapter
+
+@subsubsection attention-semio_attention_node-topics Topics
+<table>
+<tr><th>Topic</th><th>Type</th><th>Description</th></tr>
+<tr><td colspan="3" align="center">@b Subscriptions</td></tr>
+<tr><td>@b `~targets`</td><td>@ref semio_msgs_ros<a href=AttentionTargets_8msg_source.html><b>/AttentionTargets</b></a></td><td>Targets that humanoids can attend to</td></tr>
+<tr><td colspan="3" align="center">@b Publications</td></tr>
+<tr><td>@b `~result`</td><td>@ref semio_msgs_ros<a href=AttentionRecognitionResult_8msg_source.html><b>/AttentionRecognitionResult</b></a></td><td>Result from semio::AttentionRecognizer</td></tr>
+</table>
+- Any created by:
+  - semio::ros::HumanoidSourceAdapter
+  - semio::ros::HumanoidSinkAdapter
+
+
+---
+@subsection attention-example_attention_targets_node example_attention_targets_node
+
+@subsubsection attention-example_attention_targets_node-source C++ API
+- @ref ExampleAttentionTargetsNode
+
+@subsubsection attention-example_attention_targets_node-params Params
+<table>
+<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td>@b `_cols`</td><td>`int32`</td><td>`13`</td><td>Number of spherical "columns" of targets to create</td></tr>
+<tr><td>@b `_rows`</td><td>`int32`</td><td>`7`</td><td>Number of spherical "rows" of targets to create</td></tr>
+<tr><td>@b `_hspacing`</td><td>`float64`</td><td>`15.0`</td><td>Horizontal angular separation between targets, degrees</td></tr>
+<tr><td>@b `_vspacing`</td><td>`float64`</td><td>`15.0`</td><td>Vertical angular separation between targets, degrees</td></tr>
+<tr><td>@b `_radius`</td><td>`float64`</td><td>`2.0`</td><td>Radius of spherical grid, meters</td></tr>
+</table>
+- Any created by:
+  - semio::ros::HumanoidSourceAdapter
+  - semio::ros::HumanoidSinkAdapter
+
+@subsubsection attention-example_attention_targets_node-topics Topics
+<table>
+<tr><th>Topic</th><th>Type</th><th>Description</th></tr>
+<tr><td colspan="3" align="center">@b Publications</td></tr>
+<tr><td>@b `~targets`</td><td>@ref semio_msgs_ros<a href=AttentionTargets_8msg_source.html><b>/AttentionTargets</b></a></td><td>Targets that humanoids can attend to</td></tr>
+</table>
+- Any created by:
+  - semio::ros::HumanoidSourceAdapter
+  - semio::ros::HumanoidSinkAdapter
+
+@tableofcontents
+
+**/
