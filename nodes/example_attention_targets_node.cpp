@@ -1,41 +1,57 @@
 #include <ros/ros.h>
 #include <semio_msgs_ros/AttentionTargets.h>
-#include <semio_msgs_ros/Humanoids.h>
 #include <semio/recognition/attention_recognizer.h>
 #include <semio/ros/humanoid_source_adapter.h>
 #include <semio/ros/humanoid_sink_adapter.h>
 #include <semio/recognition/humanoid_source_virtual.h>
 
+//! Stores a partial pose (head/neck/torso rotations and the torso position) of a virtual humanoid
 struct TestPose
 {
+    //! Rotation of the head joint for the test pose (relative to global frame)
     Eigen::Vector3d head_rotation;
+    //! Rotation of the neck joint for the test pose (relative to global frame)
     Eigen::Vector3d neck_rotation;
+    //! Rotation of the torso joint for the test pose (relative to global frame)
     Eigen::Vector3d torso_rotation;
+    //! Position of the torso joint for the test pose (relative to global frame)
     Eigen::Vector3d position;
 };
 
+//! Example node demonstrating how to publish targets for attention recognition
 class ExampleAttentionTargetsNode
 {
 protected:
+    //! ROS message for a vector of attention targets
     typedef semio_msgs_ros::AttentionTargets _AttentionTargetsMsg;
+    //! ROS message for a single attention target
     typedef semio_msgs_ros::AttentionTarget _AttentionTargetMsg;
-    typedef semio_msgs_ros::Humanoids _HumanoidsMsg;
-    typedef semio_msgs_ros::Humanoid _HumanoidMsg;
-    typedef semio_msgs_ros::HumanoidJoint _HumanoidJointMsg;
 
+    //! NodeHandle used to interface with ROS
     ros::NodeHandle & _nh_rel;
+    //! Publisher for our attention targets
     ros::Publisher _attention_targets_pub;
 
+    //! Pointer to the input source for humanoids
     semio::HumanoidSource::Ptr _humanoid_source_ptr;
+    //! Pointer to the output sink for humanoids
     semio::HumanoidSink::Ptr _humanoid_sink_ptr;
 
+    //! Whether the input source is a semio::HumanoidSourceVirtual
     bool _is_virtual_source;
 
+    //! The list of attention targets to publish
     semio::AttentionTargetArray _attention_targets;
 
+    //! The list of test poses to use if #_is_virtual_source == true
     std::vector<TestPose> _test_poses;
 
 public:
+    /**
+    @param nh_rel @copybrief _nh_rel
+    @param humanoid_source_ptr @copybrief _humanoid_source_ptr
+    @param humanoid_sink_ptr @copybrief _humanoid_sink_ptr
+    */
     ExampleAttentionTargetsNode( ros::NodeHandle & nh_rel, semio::HumanoidSource::Ptr humanoid_source_ptr, semio::HumanoidSink::Ptr humanoid_sink_ptr )
     :
         _nh_rel( nh_rel ),
@@ -107,12 +123,14 @@ public:
         }
     }
 
+    //! Publish all relevant data
     void publishData()
     {
-        // publish humanoids
+        //! - Publish humanoids from our input source to our output sink
         _humanoid_sink_ptr->publish( _humanoid_source_ptr->update() );
 
-        // publish attention targets
+        //----------
+        //! - Convert attention targets to ROS message
         _AttentionTargetsMsg attention_targets_msg;
 
         attention_targets_msg.targets.reserve( _attention_targets.size() );
@@ -128,10 +146,18 @@ public:
 
             attention_targets_msg.targets.push_back( std::move( attention_target_msg ) );
         }
+        //----------
 
+        //! - Publish attention targets
         _attention_targets_pub.publish( attention_targets_msg );
     }
 
+    //! Main loop
+    /**
+    - If #_is_virtual_source == true
+      - Update our humanoid source with the next test pose
+    - publishData()
+    */
     void spin()
     {
         if( _is_virtual_source )
@@ -190,12 +216,17 @@ public:
 int main( int argc, char ** argv )
 {
     ros::init( argc, argv, "example_attention_targets_node" );
+    //! - Create NodeHandle with relative namespace
     ros::NodeHandle nh_rel( "~" );
 
+    //! - Create semio::ros::HumanoidSourceAdapter; default to virtual source
     semio::ros::HumanoidSourceAdapter humanoid_source_adapter( nh_rel, "virtual" );
+    //! - Create semio::ros::HumanoidSinkAdapter; default to ROS source
     semio::ros::HumanoidSinkAdapter humanoid_sink_adapter( nh_rel, "ros" );
 
+    //! - Create ExampleAttentionTargetsNode; pass node handle, humanoid source, and humanoid sink
     ExampleAttentionTargetsNode example_attention_targets_node( nh_rel, humanoid_source_adapter.getHumanoidSource(), humanoid_sink_adapter.getHumanoidSink() );
+    //! - Start main loop ExampleAttentionTargetsNode::spin()
     example_attention_targets_node.spin();
 
     return 0;
